@@ -1,2 +1,3 @@
 # Bill_Data_Extractor
 This project is an AI-powered document parsing and dashboard system tailored for institutions such as companies, hospitals, and educational organizations. It automates the extraction of amounts, taxes, discounts, and totals from receipts, invoices, bills, or medical claim forms using OCR and the Groq LLM API.
+# redeploy trigger
