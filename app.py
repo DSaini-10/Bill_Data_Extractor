@@ -9,7 +9,7 @@ from PIL import Image
 import io
 import os
 
-
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 # -------------------------------
 # Groq API setup
