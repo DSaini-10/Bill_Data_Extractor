@@ -1,12 +1,9 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
-# Install system dependencies including Tesseract OCR
-RUN apt-get update && apt-get install -y \
+# Install Tesseract OCR on Alpine (much faster)
+RUN apk add --no-cache \
     tesseract-ocr \
-    libtesseract-dev \
-    libleptonica-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    tesseract-ocr-data-eng
 
 # Set working directory
 WORKDIR /app
