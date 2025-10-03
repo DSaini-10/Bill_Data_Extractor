@@ -1,7 +1,7 @@
 import requests
 import json
 import re
-import pytesseract
+import numpy as np
 from fastapi import FastAPI, UploadFile, Form, HTTPException
 from pydantic import BaseModel
 from typing import Dict, List, Union, Optional
@@ -9,29 +9,67 @@ from PIL import Image
 import io
 import os
 
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+# Import EasyOCR
+try:
+    import easyocr
+
+    # Initialize EasyOCR reader once (it's heavy to initialize)
+    reader = easyocr.Reader(['en'])  # English only for better performance
+    EASYOCR_AVAILABLE = True
+    print("EasyOCR initialized successfully")
+except ImportError:
+    EASYOCR_AVAILABLE = False
+    print("EasyOCR not available, please install: pip install easyocr")
+except Exception as e:
+    EASYOCR_AVAILABLE = False
+    print(f"EasyOCR initialization failed: {e}")
 
 # -------------------------------
 # Groq API setup
 # -------------------------------
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "llama-3.1-8b-instant"  # Working model
 
 # -------------------------------
 # FastAPI app
 # -------------------------------
-app = FastAPI(title="AI-Powered Amount Detection API with Groq", version="2.0")
 
+app = FastAPI(title="AI-Powered Amount Detection API with Groq", version="3.0")
 
 # -------------------------------
-# OCR HELPER (for file processing only)
+# OCR HELPER (using EasyOCR)
 # -------------------------------
 def run_ocr(file_bytes: bytes) -> str:
+    """
+    Use EasyOCR for text extraction from images
+    No system dependencies required - pure Python
+    """
+    if not EASYOCR_AVAILABLE:
+        return "OCR not available: EasyOCR not installed"
+
     try:
+        # Convert bytes to PIL Image
         image = Image.open(io.BytesIO(file_bytes))
-        text = pytesseract.image_to_string(image)
-        return text
+
+        # Convert PIL Image to numpy array (required by EasyOCR)
+        image_np = np.array(image)
+
+        # Use EasyOCR to extract text
+        results = reader.readtext(image_np, paragraph=True)
+
+        # Combine all detected text
+        text_parts = []
+        for (bbox, text, confidence) in results:
+            text_parts.append(text.strip())
+
+        full_text = ' '.join(text_parts)
+
+        print(f"EasyOCR extracted text: {full_text[:200]}...")  # Log first 200 chars
+        return full_text
+
     except Exception as e:
+        print(f"EasyOCR failed: {e}")
         return f"OCR failed: {str(e)}"
 
 
@@ -567,5 +605,31 @@ async def health_check():
     return {
         "status": "healthy",
         "groq_available": groq_status,
-        "model": GROQ_MODEL
+        "model": GROQ_MODEL,
+        "ocr_engine": "easyocr",
+        "ocr_available": EASYOCR_AVAILABLE
     }
+
+
+# Test endpoint to verify OCR functionality
+@app.post("/test-ocr")
+async def test_ocr(file: UploadFile):
+    """
+    Test endpoint to verify EasyOCR is working
+    """
+    try:
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+
+        file_bytes = await file.read()
+        text_content = run_ocr(file_bytes)
+
+        return {
+            "filename": file.filename,
+            "extracted_text": text_content,
+            "ocr_engine": "easyocr",
+            "status": "success"
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OCR test failed: {str(e)}")
