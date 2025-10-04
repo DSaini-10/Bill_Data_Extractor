@@ -16,7 +16,6 @@ Built with FastAPI and deployed on Render.
 ##
 ## Deployed Service Url: https://billdata-extractor.onrender.com
 
-##
 
 ## Quick start Guide for local Server
 1. Clone repo:
