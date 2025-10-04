@@ -13,9 +13,11 @@ Built with FastAPI and deployed on Render.
 - `README.md` — this file
 - `samples/` — sample receipts and sample requests 
 
+- <br>
 ##
 ## Deployed Service Url: https://billdata-extractor.onrender.com
 
+<br>
 
 ## Quick start Guide for local Server
 1. Clone repo:
