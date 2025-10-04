@@ -48,7 +48,7 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## For Testing (On Deployed Version):
-1. Head to Url : ## Deployed Service Url: https://billdata-extractor.onrender.com/docs
+1. Head to Url: https://billdata-extractor.onrender.com/docs
 2. This opens the Swagger UI for testing 
 3. Test the main endpoints : /text-form and /file
 
