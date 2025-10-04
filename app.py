@@ -8,28 +8,18 @@ from PIL import Image
 import io
 import os
 
-# Tesseract is already installed in the system via Docker
-# No need to set tesseract_cmd path in Docker
 
-# -------------------------------
 # Groq API setup
-# -------------------------------
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "llama-3.1-8b-instant"
 
-# -------------------------------
-# FastAPI app
-# -------------------------------
+
 app = FastAPI(title="Receipt Processor API with OCR", version="6.0")
 
 
-# -------------------------------
 # OCR HELPER (with Tesseract)
-# -------------------------------
 def run_ocr(file_bytes: bytes) -> str:
-    """
-    Use Tesseract OCR for text extraction from images
-    """
+
     try:
         # Convert bytes to PIL Image
         image = Image.open(io.BytesIO(file_bytes))
@@ -45,9 +35,7 @@ def run_ocr(file_bytes: bytes) -> str:
         return f"OCR failed: {str(e)}"
 
 
-# -------------------------------
 # STEP 1: OCR / Text Extraction
-# -------------------------------
 def step1_extract(text: str) -> Dict[str, Union[List[str], str, float]]:
     if not text:
         return {"status": "no_amounts_found", "reason": "document too noisy"}
@@ -86,9 +74,7 @@ def step1_extract(text: str) -> Dict[str, Union[List[str], str, float]]:
     }
 
 
-# -------------------------------
 # STEP 2: NORMALIZATION
-# -------------------------------
 def step2_normalize(raw_tokens: List[str]) -> Dict[str, Union[List[float], float]]:
     normalized = []
     for token in raw_tokens:
@@ -122,11 +108,8 @@ def step2_normalize(raw_tokens: List[str]) -> Dict[str, Union[List[float], float
     }
 
 
-# -------------------------------
 # GROQ API CLASSIFICATION
-# -------------------------------
 def classify_with_groq(text: str, numbers: List[float]) -> List[Dict]:
-    """Groq API classification"""
     if not GROQ_API_KEY:
         return []
 
@@ -170,9 +153,7 @@ def classify_with_groq(text: str, numbers: List[float]) -> List[Dict]:
     return []
 
 
-# -------------------------------
 # STEP 3: CLASSIFICATION
-# -------------------------------
 def step3_classify(text: str, normalized: List[float]) -> Dict[str, Union[List[Dict], float, str]]:
     classifications = []
 
@@ -250,9 +231,7 @@ def step3_classify(text: str, normalized: List[float]) -> Dict[str, Union[List[D
     return result
 
 
-# -------------------------------
 # STEP 4: FINAL OUTPUT
-# -------------------------------
 def step4_output(text: str, currency: str, classified: Dict) -> Dict:
     meaningful_types = {"total_bill", "paid", "due", "discount", "tax", "tip", "change"}
 
@@ -311,9 +290,7 @@ def step4_output(text: str, currency: str, classified: Dict) -> Dict:
     return result
 
 
-# -------------------------------
 # PIPELINE WRAPPER
-# -------------------------------
 def process_document(text: str):
     if not text or not text.strip():
         return {"status": "no_amounts_found", "reason": "document too noisy"}
@@ -329,15 +306,10 @@ def process_document(text: str):
     return step4
 
 
-# -------------------------------
 # ENDPOINTS
-# -------------------------------
 
 @app.post("/text-form")
 async def process_text_form(text: str = Form(...)):
-    """
-    Process text input only - Form data format
-    """
     try:
         result = process_document(text)
         return result
@@ -347,9 +319,7 @@ async def process_text_form(text: str = Form(...)):
 
 @app.post("/file")
 async def process_file(file: UploadFile):
-    """
-    Process image files with OCR
-    """
+
     try:
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file provided")

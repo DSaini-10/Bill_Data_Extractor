@@ -1,0 +1,51 @@
+POST /text-form
+
+Form fields:
+text — raw receipt text
+
+Sample curl-1:
+curl -X POST "https://bill-data-extractor.onrender.com/text-form" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=Store X\nTotal: 950Rs\nTax: 50RS\nTotal: 1000Rs\nPaid: 900Rs  Discount:10%"
+
+Sample curl-2:
+curl -X POST "https://bill-data-extractor.onrender.com/text-form" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "text=Store X\nDate: 2025-10-04\nSubtotal: 950\nTax: 50\nTotal: 1000\nPaid: 1000"
+
+
+
+POST /file
+
+Form fields:
+file — image file (png/jpg/jpeg)
+
+Sample curl-1:
+curl -X POST "https://billdata-extractor.onrender.com/file" \
+  -F "file=@./samples/receipt1.jpg"
+
+
+Sample curl-2:
+curl -X POST "https://bill-data-extractor.onrender.com/file" \
+  -F "file=@./samples/receipt3.png"
+
+
+GET /health:
+curl -X GET "https://bill-data-extractor.onrender.com/health"
+
+
+Successful Response schema :
+
+{
+  "currency": "INR",
+  "amounts": [
+    {
+      "type": "total_bill",
+      "value": 1200,
+      "source": "text: 'Total 1200'"
+    }
+  ],
+  "status": "ok",
+  "classification_method": "rule_based"
+}
+

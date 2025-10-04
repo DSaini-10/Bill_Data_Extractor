@@ -1,6 +1,6 @@
 FROM python:3.11-alpine
 
-# Install Tesseract OCR on Alpine (much faster)
+# Install Tesseract OCR on Alpine
 RUN apk add --no-cache \
     tesseract-ocr \
     tesseract-ocr-data-eng
